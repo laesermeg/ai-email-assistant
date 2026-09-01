@@ -20,26 +20,29 @@ function pickHeader(headers, name) {
 }
 
 /**
- * 받은편지함(INBOX)에서 최근 메일 요약 목록을 가져온다.
- * @param {string} accessToken  구글 access token
- * @param {number} max          가져올 개수 (기본 10)
- * @returns {Promise<Array<{id,threadId,from,subject,date,snippet}>>}
+ * 받은편지함(INBOX)에서 최근 메일의 ID·스레드ID 목록만 가져온다 (가벼운 호출 1번).
+ * @returns {Promise<Array<{id, threadId}>>}
  */
-export async function getRecentEmails(accessToken, max = 10) {
-  // 1) 최근 메일 ID 목록 요청
-  const listRes = await fetch(
+export async function listRecentMessageIds(accessToken, max = 10) {
+  const res = await fetch(
     `${GMAIL_API}/messages?maxResults=${max}&labelIds=INBOX`,
     { headers: authHeader(accessToken) }
   );
-  if (!listRes.ok) {
-    throw new Error(`메일 목록 요청 실패 (HTTP ${listRes.status})`);
+  if (!res.ok) {
+    throw new Error(`메일 목록 요청 실패 (HTTP ${res.status})`);
   }
-  const listData = await listRes.json();
-  const ids = (listData.messages || []).map((m) => m.id);
+  const data = await res.json();
+  return (data.messages || []).map((m) => ({ id: m.id, threadId: m.threadId }));
+}
 
-  // 2) 각 메일의 헤더(보낸사람/제목/날짜) + 미리보기(snippet)만 요청
-  //    format=metadata 로 본문 전체는 받지 않는다 (최소 수집 원칙)
-  const emails = await Promise.all(
+/**
+ * 주어진 메일 ID들의 헤더(보낸사람/제목/날짜) + 미리보기(snippet)를 가져온다.
+ * format=metadata 라 본문 전체는 받지 않는다 (최소 수집 원칙).
+ * @returns {Promise<Array<{id,threadId,from,subject,date,snippet}>>}
+ */
+export async function getMessagesMetadata(accessToken, ids) {
+  if (!ids || ids.length === 0) return [];
+  return Promise.all(
     ids.map(async (id) => {
       const res = await fetch(
         `${GMAIL_API}/messages/${id}` +
@@ -62,8 +65,18 @@ export async function getRecentEmails(accessToken, max = 10) {
       };
     })
   );
+}
 
-  return emails;
+/**
+ * 최근 메일을 헤더까지 포함해 한 번에 가져온다 (목록 + 상세).
+ * @returns {Promise<Array<{id,threadId,from,subject,date,snippet}>>}
+ */
+export async function getRecentEmails(accessToken, max = 10) {
+  const list = await listRecentMessageIds(accessToken, max);
+  return getMessagesMetadata(
+    accessToken,
+    list.map((l) => l.id)
+  );
 }
 
 /** base64url 문자열을 일반 텍스트로 디코드한다. */

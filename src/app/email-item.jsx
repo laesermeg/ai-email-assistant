@@ -113,9 +113,11 @@ export default function EmailItem({ email }) {
           {s.what ? <Row label="용건">{s.what}</Row> : null}
           {s.deadline ? <Row label="날짜">{s.deadline}</Row> : null}
         </dl>
-      ) : (
-        <p className="mt-1 line-clamp-2 text-xs text-muted">{m.snippet}</p>
-      )}
+      ) : m.categoryReason || m.snippet ? (
+        <p className="mt-1 line-clamp-2 text-xs text-muted">
+          {m.categoryReason || m.snippet}
+        </p>
+      ) : null}
 
       {/* 답장 초안/전송 영역 (기타 제외) */}
       {!isOther ? (

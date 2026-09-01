@@ -16,6 +16,7 @@ function orderOf(category) {
 export default function EmailList() {
   const [emails, setEmails] = useState(null);
   const [analyzed, setAnalyzed] = useState(true);
+  const [stats, setStats] = useState(null); // { newlyAnalyzed, fromCache }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -32,6 +33,10 @@ export default function EmailList() {
       );
       setEmails(sorted);
       setAnalyzed(data.analyzed);
+      setStats({
+        newlyAnalyzed: data.newlyAnalyzed ?? 0,
+        fromCache: data.fromCache ?? 0,
+      });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -54,6 +59,14 @@ export default function EmailList() {
       {emails && !analyzed ? (
         <p className="text-xs text-muted">
           AI 분석에 실패해서 분류·요약 없이 표시합니다.
+        </p>
+      ) : null}
+
+      {emails && stats ? (
+        <p className="text-xs text-muted">
+          {stats.newlyAnalyzed > 0
+            ? `새로 분석 ${stats.newlyAnalyzed}개 · 저장된 결과 ${stats.fromCache}개`
+            : `전부 저장된 결과 사용 (${stats.fromCache}개) · AI 호출 없음`}
         </p>
       ) : null}
 
