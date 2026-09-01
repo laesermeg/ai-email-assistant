@@ -18,8 +18,10 @@ import { getStoredAnalyses, saveAnalyses } from "@/lib/analysis-store";
 import { getRules, applyRules } from "@/lib/rules";
 import { getGuideline } from "@/lib/settings";
 
-/** 표시할 최근 메일 개수 */
-const RECENT_COUNT = 30;
+/** 표시할 최근 메일 개수 (기본값과 허용 범위) */
+const DEFAULT_COUNT = 30;
+const MIN_COUNT = 10;
+const MAX_COUNT = 200;
 
 /** 메일 Date 헤더 문자열 → ISO 문자열 (파싱 실패 시 null) */
 function toIso(dateStr) {
@@ -30,8 +32,14 @@ function toIso(dateStr) {
 
 export async function GET(request) {
   const session = await auth();
+  const params = new URL(request.url).searchParams;
   // ?refresh=1 → 저장된 결과를 무시하고 최근 메일을 규칙+AI로 다시 분석
-  const refresh = new URL(request.url).searchParams.get("refresh") === "1";
+  const refresh = params.get("refresh") === "1";
+  // ?count=N → 표시/분석할 최근 메일 개수 (범위 밖이면 기본값)
+  const count = Math.min(
+    MAX_COUNT,
+    Math.max(MIN_COUNT, Number(params.get("count")) || DEFAULT_COUNT)
+  );
 
   if (!session) {
     return Response.json({ error: "로그인이 필요합니다." }, { status: 401 });
@@ -50,7 +58,7 @@ export async function GET(request) {
   // 1) 최근 메일 ID 목록 (가벼운 호출 1번)
   let list;
   try {
-    list = await listRecentMessageIds(session.accessToken, RECENT_COUNT);
+    list = await listRecentMessageIds(session.accessToken, count);
   } catch (err) {
     console.error("[/api/emails] gmail list", err.message);
     return Response.json({ error: "메일 목록을 가져오지 못했어요." }, { status: 502 });
@@ -187,6 +195,7 @@ export async function GET(request) {
         category: a.category ?? null,
         categoryReason: a.reason ?? "",
         summary: a.summary ?? null,
+        done: a.done === true,
       };
     })
     .sort((x, y) => {

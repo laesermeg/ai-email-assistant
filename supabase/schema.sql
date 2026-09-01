@@ -13,7 +13,7 @@ create table if not exists email_analysis (
   gmail_thread_id  text,                          -- Gmail 스레드 ID (답장 시 사용)
   from_addr        text not null default '',      -- 발신자 (목록 표시 + 규칙용 메타데이터)
   subject          text not null default '',      -- 제목 (목록 표시용 메타데이터)
-  category         text not null,                 -- '개인' | '학교일' | '기타'
+  category         text not null,                 -- '개인' | '업무' | '기타'
   category_reason  text not null default '',      -- 분류 이유 한 문장
   summary          jsonb not null default '{}'::jsonb,  -- {who, what, deadline, replyNeeded}
   analyzed_at      timestamptz not null default now(),
@@ -42,7 +42,7 @@ create table if not exists rules (
   user_email  text not null,
   match_type  text not null,   -- 'from_domain' | 'from_address' | 'subject_contains'
   pattern     text not null,
-  category    text not null,   -- '개인' | '학교일' | '기타'
+  category    text not null,   -- '개인' | '업무' | '기타'
   enabled     boolean not null default true,
   created_at  timestamptz not null default now()
 );

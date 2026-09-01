@@ -9,62 +9,69 @@ import Dashboard from "./dashboard";
 export default async function Home() {
   const session = await auth();
   const user = session?.user;
+  const needsReLogin = user && session.error === "RefreshAccessTokenError";
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
       {/* 상단 바 */}
-      <header className="flex items-center justify-between border-b border-border px-6 py-4">
+      <header className="flex items-center justify-between gap-3 border-b border-border px-6 py-4">
         <span className="text-sm font-semibold tracking-tight">
           AI 이메일 비서
         </span>
         {user ? (
-          <form
-            action={async () => {
-              "use server";
-              await signOut({ redirectTo: "/" });
-            }}
-          >
-            <button
-              type="submit"
-              className="text-sm text-muted underline underline-offset-4 transition-colors hover:text-foreground"
+          <div className="flex items-center gap-3 text-sm">
+            <span className="hidden truncate text-muted sm:inline">
+              {user.email}
+            </span>
+            <form
+              action={async () => {
+                "use server";
+                await signOut({ redirectTo: "/" });
+              }}
             >
-              로그아웃
-            </button>
-          </form>
+              <button
+                type="submit"
+                className="text-muted underline underline-offset-4 transition-colors hover:text-foreground"
+              >
+                로그아웃
+              </button>
+            </form>
+          </div>
         ) : null}
       </header>
 
-      {/* 본문: 로그인 상태면 위쪽 정렬 + 넓게, 아니면 가운데 정렬 + 좁게 */}
+      {/* 본문 */}
       <main
         className={
           user
-            ? "flex flex-1 justify-center px-6 py-12"
+            ? "flex flex-1 justify-center px-6 py-10"
             : "flex flex-1 items-center px-6 py-16"
         }
       >
         <div className={user ? "w-full max-w-xl" : "mx-auto w-full max-w-sm"}>
           {user ? (
-            <div className="flex flex-col gap-6">
-              <div>
-                <h1 className="text-xl font-semibold tracking-tight">
-                  계정이 연결됐어요
-                </h1>
-                <p className="mt-1 text-sm text-muted">{user.email}</p>
+            needsReLogin ? (
+              <div className="flex flex-col gap-4">
+                <p className="text-sm text-muted">
+                  Gmail 연결이 만료됐어요. 다시 로그인해 주세요.
+                </p>
+                <form
+                  action={async () => {
+                    "use server";
+                    await signIn("google");
+                  }}
+                >
+                  <button
+                    type="submit"
+                    className="border border-foreground bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-80"
+                  >
+                    다시 로그인
+                  </button>
+                </form>
               </div>
-
-              <dl className="divide-y divide-border border-y border-border text-sm">
-                <div className="flex items-center justify-between py-3">
-                  <dt className="text-muted">Gmail 접근 권한</dt>
-                  <dd>{session.hasGmailAccess ? "연결됨" : "없음"}</dd>
-                </div>
-                <div className="flex items-center justify-between py-3">
-                  <dt className="text-muted">장기 인증(refresh token)</dt>
-                  <dd>{session.hasRefreshToken ? "연결됨" : "없음"}</dd>
-                </div>
-              </dl>
-
+            ) : (
               <Dashboard />
-            </div>
+            )
           ) : (
             <div className="flex flex-col gap-8">
               <div>

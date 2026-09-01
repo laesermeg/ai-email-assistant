@@ -12,7 +12,7 @@ import {
   MATCH_TYPES,
 } from "@/lib/rules";
 
-const CATEGORIES = ["개인", "학교일", "기타"];
+const CATEGORIES = ["개인", "업무", "기타"];
 
 async function requireUserEmail() {
   const session = await auth();

@@ -37,11 +37,13 @@ function Row({ label, children }) {
  *  2) 받는사람·제목·본문을 미리보기 (본문·제목은 수정 가능)
  *  3) "보내기" → 확인창 승인 → 서버(/api/send)가 Gmail 로 전송
  */
-export default function EmailItem({ email }) {
+export default function EmailItem({ email, onToggleDone }) {
   const m = email;
   const s = m.summary;
   const isOther = m.category === "기타";
+  const done = m.done === true;
 
+  const [togglingDone, setTogglingDone] = useState(false);
   const [instruction, setInstruction] = useState("");
   const [subject, setSubject] = useState("");
   const [draft, setDraft] = useState(null); // 생성된 초안 (수정 가능)
@@ -75,6 +77,24 @@ export default function EmailItem({ email }) {
     }
   }
 
+  async function toggleDone() {
+    const next = !done;
+    setTogglingDone(true);
+    try {
+      const res = await fetch("/api/emails/done", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailId: m.id, done: next }),
+      });
+      if (!res.ok) throw new Error();
+      onToggleDone?.(m.id, next);
+    } catch {
+      /* 실패 시 상태 유지 */
+    } finally {
+      setTogglingDone(false);
+    }
+  }
+
   async function send() {
     if (!draft.trim()) return;
     const ok = window.confirm(
@@ -101,20 +121,31 @@ export default function EmailItem({ email }) {
   }
 
   return (
-    <li className={isOther ? "py-4 opacity-45" : "py-4"}>
+    <li className={(isOther || done ? "opacity-45 " : "") + "py-4"}>
       {/* 제목 줄 */}
       <div className="flex items-baseline gap-2">
         <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted">
           {m.category || "미분류"}
         </span>
-        <p className="truncate text-sm font-medium">
+        <p
+          className={
+            "truncate text-sm font-medium " + (done ? "line-through" : "")
+          }
+        >
           {m.subject || "(제목 없음)"}
         </p>
-        {s?.replyNeeded ? (
+        {s?.replyNeeded && !done ? (
           <span className="shrink-0 border border-foreground px-1.5 py-0.5 text-[10px] font-semibold">
             답장 필요
           </span>
         ) : null}
+        <button
+          onClick={toggleDone}
+          disabled={togglingDone}
+          className="ml-auto shrink-0 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground disabled:opacity-40"
+        >
+          {done ? "되돌리기" : "확인 완료"}
+        </button>
       </div>
       <p className="mt-0.5 flex gap-2 text-xs text-muted">
         <span className="truncate">{m.from}</span>
@@ -136,8 +167,8 @@ export default function EmailItem({ email }) {
         </p>
       ) : null}
 
-      {/* 답장 초안/전송 영역 (기타 제외) */}
-      {!isOther ? (
+      {/* 답장 초안/전송 영역 (기타·완료 제외) */}
+      {!isOther && !done ? (
         <div className="mt-3 flex flex-col gap-2">
           {/* 1) 용건 입력 */}
           <div className="flex gap-2">

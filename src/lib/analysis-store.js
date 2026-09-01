@@ -13,7 +13,7 @@ export async function getStoredAnalyses(userEmail, messageIds) {
   const { data, error } = await db
     .from("email_analysis")
     .select(
-      "gmail_message_id, category, category_reason, summary, from_addr, subject, email_date"
+      "gmail_message_id, category, category_reason, summary, from_addr, subject, email_date, done"
     )
     .eq("user_email", userEmail)
     .in("gmail_message_id", messageIds);
@@ -29,6 +29,7 @@ export async function getStoredAnalyses(userEmail, messageIds) {
       from: r.from_addr || "",
       subject: r.subject || "",
       emailDate: r.email_date || null,
+      done: r.done === true,
     });
   }
   return map;
@@ -60,4 +61,15 @@ export async function saveAnalyses(userEmail, analyses) {
     .upsert(rows, { onConflict: "user_email,gmail_message_id" });
 
   if (error) throw new Error("분석 결과 저장 실패: " + error.message);
+}
+
+/** 메일 하나의 "확인 완료" 상태를 바꾼다. */
+export async function setDone(userEmail, messageId, done) {
+  const db = getDb();
+  const { error } = await db
+    .from("email_analysis")
+    .update({ done: !!done })
+    .eq("user_email", userEmail)
+    .eq("gmail_message_id", messageId);
+  if (error) throw new Error("상태 저장 실패: " + error.message);
 }

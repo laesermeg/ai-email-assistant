@@ -7,7 +7,7 @@ const MATCH_TYPES = [
   { value: "from_address", label: "발신자 주소", ph: "예: mom@naver.com" },
   { value: "subject_contains", label: "제목에 단어 포함", ph: "예: 뉴스레터" },
 ];
-const CATEGORIES = ["개인", "학교일", "기타"];
+const CATEGORIES = ["개인", "업무", "기타"];
 
 /**
  * 규칙 관리 화면.
@@ -20,7 +20,7 @@ export default function RulesPanel() {
 
   const [matchType, setMatchType] = useState("from_domain");
   const [pattern, setPattern] = useState("");
-  const [category, setCategory] = useState("학교일");
+  const [category, setCategory] = useState("업무");
   const [saving, setSaving] = useState(false);
 
   // AI 분류 지침 (자연어)
@@ -133,7 +133,7 @@ export default function RulesPanel() {
           }}
           rows={4}
           placeholder={
-            "예)\n- 학회·저널에서 오는 심사·투고 관련 메일은 기타로\n- @kaist.ac.kr 에서 오면 대체로 학교일\n- 광고·홍보 문구가 있으면 기타"
+            "예)\n- 학회·저널에서 오는 심사·투고 관련 메일은 기타로\n- @kaist.ac.kr 에서 오면 대체로 업무\n- 광고·홍보 문구가 있으면 기타"
           }
           className="w-full resize-y border border-border bg-transparent p-2.5 text-xs leading-relaxed outline-none focus:border-foreground"
         />
@@ -147,7 +147,7 @@ export default function RulesPanel() {
           </button>
           {guidelineSaved ? (
             <span className="text-[11px] text-muted">
-              저장됨 · [메일] 탭에서 “규칙 반영해 다시 분석” 하면 적용돼요
+              저장됨 · [메일] 탭에서 “키워드 지침 동기화” 하면 적용돼요
             </span>
           ) : null}
         </div>
@@ -155,10 +155,13 @@ export default function RulesPanel() {
 
       <div className="h-px bg-border" />
 
-      <p className="text-xs text-muted">
-        아래 <b>구조 규칙</b>은 AI 없이 즉시·확정 분류돼요 (요약은 생략).
-        위에서부터 먼저 맞는 규칙이 적용됩니다.
-      </p>
+      <div className="flex flex-col gap-1">
+        <h3 className="text-sm font-semibold">키워드 설정</h3>
+        <p className="text-xs text-muted">
+          발신자·제목 키워드가 맞으면 AI 없이 즉시·확정 분류돼요 (요약은 생략).
+          위에서부터 먼저 맞는 항목이 적용됩니다.
+        </p>
+      </div>
 
       {/* 규칙 추가 */}
       <form onSubmit={addRule} className="flex flex-col gap-2 border border-border p-3">
@@ -213,7 +216,7 @@ export default function RulesPanel() {
       {loading ? (
         <p className="text-sm text-muted">불러오는 중…</p>
       ) : rules.length === 0 ? (
-        <p className="text-sm text-muted">아직 규칙이 없어요.</p>
+        <p className="text-sm text-muted">아직 등록된 키워드가 없어요.</p>
       ) : (
         <ul className="divide-y divide-border border-y border-border text-xs">
           {rules.map((r) => (

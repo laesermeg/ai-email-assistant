@@ -1,7 +1,7 @@
 import { askForJson } from "./ai";
 
 /** 허용되는 분류 값 */
-export const CATEGORIES = ["개인", "학교일", "기타"];
+export const CATEGORIES = ["개인", "업무", "기타"];
 
 /** 요약이 비었을 때 채워 넣을 기본값 */
 const EMPTY_SUMMARY = {
@@ -16,13 +16,13 @@ const SYSTEM_PROMPT = `당신은 대학 교수의 이메일을 정리하는 비�
 
 [분류] 아래 중 하나로:
 - "개인": 가족·친구·지인 등 사적인 연락. 업무와 무관한 개인 용무.
-- "학교일": 소속 학교의 학생 지도, 행정처·교직원 업무, 동료 교수와의 협업 등
-  "우리 학교 안에서 벌어지는 일"만 해당.
+- "업무": 소속 기관(학교)의 학생 지도, 행정처·교직원 업무, 동료 교수와의 협업 등
+  "우리 조직 안에서 처리해야 하는 일".
 - "기타": 학회·저널의 심사위원 위촉·논문 심사 요청, 학회 초청, 강연 요청,
   뉴스레터, 광고, 자동발송 알림, 외부 기관의 협업 제안 등.
   → 이런 메일은 답장이 필요하더라도 반드시 "기타"로 분류하세요.
 
-애매하면 "학교일"이 아니라 "기타"로 두세요. "학교일"은 소속 학교 내부 일에만 씁니다.
+애매하면 "업무"가 아니라 "기타"로 두세요. "업무"는 소속 기관 내부 일에만 씁니다.
 
 [요약] 아래 항목을 채우세요:
 - who: 보낸 사람이 누구인지 짧게 (예: "지도학생 김민수", "학과 조교", "김철수 교수")
@@ -99,9 +99,28 @@ async function analyzeChunk(emails, guideline) {
   });
 }
 
+/** 동시에 진행할 AI 호출 수 (무료 티어 분당 한도 대비 여유) */
+const CONCURRENCY = 3;
+
+/** 배열을 동시 실행 수 제한을 두고 처리한다. */
+async function mapLimit(items, limit, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (next < items.length) {
+      const i = next++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, worker)
+  );
+  return results;
+}
+
 /**
  * 메일 목록을 분류 + 요약한다.
- * CHUNK_SIZE 개씩 나눠 병렬로 처리한다 (빠르고, 응답 JSON도 덜 깨짐).
+ * CHUNK_SIZE 개씩 나눠, 동시 CONCURRENCY 개까지 병렬로 처리한다.
  * AI에는 발신자 / 제목 / 한 줄 미리보기만 보낸다 (본문·원문은 보내지 않음).
  *
  * @param {Array<{id,from,subject,snippet}>} emails
@@ -116,8 +135,8 @@ export async function analyzeEmails(emails, guideline = "") {
     chunks.push(emails.slice(i, i + CHUNK_SIZE));
   }
 
-  const results = await Promise.all(
-    chunks.map((c) => analyzeChunk(c, guideline))
+  const results = await mapLimit(chunks, CONCURRENCY, (c) =>
+    analyzeChunk(c, guideline)
   );
   return results.flat();
 }
