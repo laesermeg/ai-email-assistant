@@ -20,8 +20,11 @@ create table if not exists email_analysis (
   unique (user_email, gmail_message_id)           -- 같은 메일 중복 저장 방지
 );
 -- 기존 테이블에 컬럼 추가 (이미 있으면 무시됨)
-alter table email_analysis add column if not exists from_addr text not null default '';
-alter table email_analysis add column if not exists subject   text not null default '';
+alter table email_analysis add column if not exists from_addr  text not null default '';
+alter table email_analysis add column if not exists subject    text not null default '';
+alter table email_analysis add column if not exists email_date timestamptz;
+create index if not exists idx_email_analysis_user_date
+  on email_analysis (user_email, email_date desc);
 
 create index if not exists idx_email_analysis_user_time
   on email_analysis (user_email, analyzed_at desc);

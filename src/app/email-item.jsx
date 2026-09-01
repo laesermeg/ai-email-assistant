@@ -7,6 +7,18 @@ function hasSummary(s) {
   return s && (s.who || s.what || s.deadline || s.replyNeeded);
 }
 
+/** 받은 날짜를 짧게 (오늘/어제/M.D). */
+function shortDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const now = new Date();
+  const days = Math.floor((now - d) / 86400000);
+  if (days <= 0 && now.getDate() === d.getDate()) return "오늘";
+  if (days <= 1) return "어제";
+  return `${d.getMonth() + 1}.${d.getDate()}`;
+}
+
 /** 요약 한 줄 (라벨 + 값) */
 function Row({ label, children }) {
   return (
@@ -104,7 +116,12 @@ export default function EmailItem({ email }) {
           </span>
         ) : null}
       </div>
-      <p className="mt-0.5 truncate text-xs text-muted">{m.from}</p>
+      <p className="mt-0.5 flex gap-2 text-xs text-muted">
+        <span className="truncate">{m.from}</span>
+        {shortDate(m.date) ? (
+          <span className="shrink-0">· {shortDate(m.date)}</span>
+        ) : null}
+      </p>
 
       {/* 요약 (기타가 아니고 요약이 있을 때만) */}
       {!isOther && hasSummary(s) ? (

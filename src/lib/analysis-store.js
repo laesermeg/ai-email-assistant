@@ -12,7 +12,9 @@ export async function getStoredAnalyses(userEmail, messageIds) {
   const db = getDb();
   const { data, error } = await db
     .from("email_analysis")
-    .select("gmail_message_id, category, category_reason, summary, from_addr, subject")
+    .select(
+      "gmail_message_id, category, category_reason, summary, from_addr, subject, email_date"
+    )
     .eq("user_email", userEmail)
     .in("gmail_message_id", messageIds);
 
@@ -26,6 +28,7 @@ export async function getStoredAnalyses(userEmail, messageIds) {
       summary: r.summary || {},
       from: r.from_addr || "",
       subject: r.subject || "",
+      emailDate: r.email_date || null,
     });
   }
   return map;
@@ -34,7 +37,7 @@ export async function getStoredAnalyses(userEmail, messageIds) {
 /**
  * 분석 결과를 저장(upsert)한다. 같은 (user, 메일)은 갱신된다.
  * @param {string} userEmail
- * @param {Array<{id, threadId, from, subject, category, reason, summary}>} analyses
+ * @param {Array<{id, threadId, from, subject, emailDate, category, reason, summary}>} analyses
  */
 export async function saveAnalyses(userEmail, analyses) {
   if (!analyses || analyses.length === 0) return;
@@ -46,6 +49,7 @@ export async function saveAnalyses(userEmail, analyses) {
     gmail_thread_id: a.threadId || null,
     from_addr: a.from || "",
     subject: a.subject || "",
+    email_date: a.emailDate || null,
     category: a.category,
     category_reason: a.reason || "",
     summary: a.summary || {},

@@ -28,9 +28,14 @@ export default function EmailList() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "요청에 실패했어요.");
 
-      const sorted = [...data.emails].sort(
-        (a, b) => orderOf(a.category) - orderOf(b.category)
-      );
+      // 분류(개인→학교일→기타) 우선, 같은 분류 안에서는 받은 날짜 최신순
+      const sorted = [...data.emails].sort((a, b) => {
+        const byCat = orderOf(a.category) - orderOf(b.category);
+        if (byCat !== 0) return byCat;
+        const ta = a.date ? Date.parse(a.date) : 0;
+        const tb = b.date ? Date.parse(b.date) : 0;
+        return tb - ta;
+      });
       setEmails(sorted);
       setAnalyzed(data.analyzed);
       setStats({
