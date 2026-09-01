@@ -1,14 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import EmailItem from "./email-item";
+
+/** 화면에 보여줄 순서: 개인 → 학교일 → 기타 → 미분류 */
+const CATEGORY_ORDER = { 개인: 0, 학교일: 1, 기타: 2 };
+function orderOf(category) {
+  return CATEGORY_ORDER[category] ?? 3;
+}
 
 /**
- * "최근 메일 불러오기" 버튼 + 결과 목록.
- * 버튼 클릭이라는 사용자 동작이 필요해서 클라이언트 컴포넌트로 만든다.
- * 실제 메일 조회는 서버(/api/emails)가 하고, 여기서는 결과만 표시한다.
+ * "최근 메일 불러오기" 버튼 + 분류·요약된 메일 목록.
+ * 실제 메일 조회·분석은 서버(/api/emails)가 하고, 여기서는 결과만 표시한다.
  */
 export default function EmailList() {
   const [emails, setEmails] = useState(null);
+  const [analyzed, setAnalyzed] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,7 +26,12 @@ export default function EmailList() {
       const res = await fetch("/api/emails");
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "요청에 실패했어요.");
-      setEmails(data.emails);
+
+      const sorted = [...data.emails].sort(
+        (a, b) => orderOf(a.category) - orderOf(b.category)
+      );
+      setEmails(sorted);
+      setAnalyzed(data.analyzed);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -39,6 +51,12 @@ export default function EmailList() {
 
       {error ? <p className="text-sm text-muted">오류: {error}</p> : null}
 
+      {emails && !analyzed ? (
+        <p className="text-xs text-muted">
+          AI 분석에 실패해서 분류·요약 없이 표시합니다.
+        </p>
+      ) : null}
+
       {emails && emails.length === 0 ? (
         <p className="text-sm text-muted">받은 메일이 없습니다.</p>
       ) : null}
@@ -46,13 +64,7 @@ export default function EmailList() {
       {emails && emails.length > 0 ? (
         <ul className="divide-y divide-border border-y border-border">
           {emails.map((m) => (
-            <li key={m.id} className="py-3">
-              <p className="truncate text-sm font-medium">
-                {m.subject || "(제목 없음)"}
-              </p>
-              <p className="mt-0.5 truncate text-xs text-muted">{m.from}</p>
-              <p className="mt-1 line-clamp-2 text-xs text-muted">{m.snippet}</p>
-            </li>
+            <EmailItem key={m.id} email={m} />
           ))}
         </ul>
       ) : null}
