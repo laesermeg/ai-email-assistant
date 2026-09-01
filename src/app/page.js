@@ -1,69 +1,111 @@
-import Image from "next/image";
+import { auth, signIn, signOut } from "@/auth";
+import EmailList from "./email-list";
 
-export default function Home() {
+/**
+ * 첫 화면 (미니멀 흑백 스타일).
+ * 서버 컴포넌트: auth() 로 로그인 상태를 서버에서 바로 읽는다.
+ * 로그인/로그아웃은 서버 액션(form action)으로 처리 → 클라이언트 코드 불필요.
+ */
+export default async function Home() {
+  const session = await auth();
+  const user = session?.user;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.js
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="flex min-h-full flex-1 flex-col">
+      {/* 상단 바 */}
+      <header className="flex items-center justify-between border-b border-border px-6 py-4">
+        <span className="text-sm font-semibold tracking-tight">
+          AI 이메일 비서
+        </span>
+        {user ? (
+          <form
+            action={async () => {
+              "use server";
+              await signOut({ redirectTo: "/" });
+            }}
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <button
+              type="submit"
+              className="text-sm text-muted underline underline-offset-4 transition-colors hover:text-foreground"
+            >
+              로그아웃
+            </button>
+          </form>
+        ) : null}
+      </header>
+
+      {/* 본문: 로그인 상태면 위쪽 정렬 + 넓게, 아니면 가운데 정렬 + 좁게 */}
+      <main
+        className={
+          user
+            ? "flex flex-1 justify-center px-6 py-12"
+            : "flex flex-1 items-center px-6 py-16"
+        }
+      >
+        <div className={user ? "w-full max-w-xl" : "mx-auto w-full max-w-sm"}>
+          {user ? (
+            <div className="flex flex-col gap-6">
+              <div>
+                <h1 className="text-xl font-semibold tracking-tight">
+                  계정이 연결됐어요
+                </h1>
+                <p className="mt-1 text-sm text-muted">{user.email}</p>
+              </div>
+
+              <dl className="divide-y divide-border border-y border-border text-sm">
+                <div className="flex items-center justify-between py-3">
+                  <dt className="text-muted">Gmail 접근 권한</dt>
+                  <dd>{session.hasGmailAccess ? "연결됨" : "없음"}</dd>
+                </div>
+                <div className="flex items-center justify-between py-3">
+                  <dt className="text-muted">장기 인증(refresh token)</dt>
+                  <dd>{session.hasRefreshToken ? "연결됨" : "없음"}</dd>
+                </div>
+              </dl>
+
+              <EmailList />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-8">
+              <div>
+                <h1 className="text-2xl font-semibold leading-snug tracking-tight">
+                  받은 메일을
+                  <br />
+                  대신 정리해 드릴게요
+                </h1>
+                <p className="mt-3 text-sm leading-relaxed text-muted">
+                  교수·연구자를 위한 이메일 비서. 개인 메일과 학교 업무 메일을
+                  가려내고, 요약하고, 답장 초안까지 만들어 드립니다.
+                </p>
+              </div>
+
+              <form
+                action={async () => {
+                  "use server";
+                  await signIn("google");
+                }}
+              >
+                <button
+                  type="submit"
+                  className="w-full border border-foreground bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-80"
+                >
+                  구글로 로그인
+                </button>
+              </form>
+
+              <p className="text-xs leading-relaxed text-muted">
+                로그인 시 Gmail 읽기·보내기 권한을 요청합니다. 메일 원문은
+                저장하지 않으며, 필요한 최소한의 정보만 사용합니다.
+              </p>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* 하단 */}
+      <footer className="border-t border-border px-6 py-4 text-xs text-muted">
+        MVP · 로컬 개발 버전
+      </footer>
     </div>
   );
 }
