@@ -8,7 +8,7 @@ import RulesPanel from "./rules-panel";
  * 로그인 후 메인 화면.
  * 기본은 메일 목록. "키워드 설정 · AI 지침"은 오른쪽 위 링크로 열고 닫는다 (설정 성격).
  */
-export default function Dashboard() {
+export default function Dashboard({ userEmail }) {
   const [view, setView] = useState("mail");
 
   if (view === "settings") {
@@ -36,7 +36,7 @@ export default function Dashboard() {
           키워드 설정 · AI 지침
         </button>
       </div>
-      <EmailList />
+      <EmailList userEmail={userEmail} />
     </div>
   );
 }

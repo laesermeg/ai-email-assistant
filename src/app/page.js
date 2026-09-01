@@ -70,7 +70,7 @@ export default async function Home() {
                 </form>
               </div>
             ) : (
-              <Dashboard />
+              <Dashboard userEmail={user.email} />
             )
           ) : (
             <div className="flex flex-col gap-8">

@@ -37,11 +37,17 @@ function Row({ label, children }) {
  *  2) 받는사람·제목·본문을 미리보기 (본문·제목은 수정 가능)
  *  3) "보내기" → 확인창 승인 → 서버(/api/send)가 Gmail 로 전송
  */
-export default function EmailItem({ email, onToggleDone }) {
+export default function EmailItem({ email, userEmail, onToggleDone }) {
   const m = email;
   const s = m.summary;
   const isOther = m.category === "기타";
   const done = m.done === true;
+
+  // Gmail 에서 이 메일(스레드)을 여는 링크
+  const gmailUrl =
+    `https://mail.google.com/mail/` +
+    (userEmail ? `?authuser=${encodeURIComponent(userEmail)}` : `u/0/`) +
+    `#all/${m.threadId || m.id}`;
 
   const [togglingDone, setTogglingDone] = useState(false);
   const [instruction, setInstruction] = useState("");
@@ -127,13 +133,18 @@ export default function EmailItem({ email, onToggleDone }) {
         <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted">
           {m.category || "미분류"}
         </span>
-        <p
+        <a
+          href={gmailUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Gmail에서 열기"
           className={
-            "truncate text-sm font-medium " + (done ? "line-through" : "")
+            "truncate text-sm font-medium underline-offset-2 hover:underline " +
+            (done ? "line-through" : "")
           }
         >
           {m.subject || "(제목 없음)"}
-        </p>
+        </a>
         {s?.replyNeeded && !done ? (
           <span className="shrink-0 border border-foreground px-1.5 py-0.5 text-[10px] font-semibold">
             답장 필요
@@ -179,7 +190,7 @@ export default function EmailItem({ email, onToggleDone }) {
               onKeyDown={(e) => {
                 if (e.key === "Enter") generate();
               }}
-              placeholder="대충 용건 입력 (예: 정중히 거절 / 금요일 오후 어때요)"
+              placeholder="간략히 답장 용건을 적어주세요 (예: 정중히 거절 / 금요일 오후 어때요 (영어로))"
               className="flex-1 border border-border bg-transparent px-2.5 py-1.5 text-xs outline-none focus:border-foreground"
             />
             <button
@@ -187,7 +198,11 @@ export default function EmailItem({ email, onToggleDone }) {
               disabled={drafting || !instruction.trim()}
               className="shrink-0 border border-foreground px-3 py-1.5 text-xs font-medium transition-opacity hover:opacity-70 disabled:opacity-40"
             >
-              {drafting ? "작성 중…" : draft !== null ? "다시 작성" : "초안 생성"}
+              {drafting
+                ? "작성 중…"
+                : draft !== null
+                  ? "다시 작성"
+                  : "AI 답장 생성"}
             </button>
           </div>
           {draftError ? (

@@ -33,7 +33,7 @@ function readSavedCount() {
  * "메일 불러오기" 버튼 + 분류·요약된 메일 목록 + 분류별 탭.
  * 실제 메일 조회·분석은 서버(/api/emails)가 하고, 여기서는 결과만 표시한다.
  */
-export default function EmailList() {
+export default function EmailList({ userEmail }) {
   const [emails, setEmails] = useState(null);
   const [analyzed, setAnalyzed] = useState(true);
   const [stats, setStats] = useState(null); // { newlyAnalyzed, fromCache }
@@ -225,7 +225,12 @@ export default function EmailList() {
       {shown.length > 0 ? (
         <ul className="divide-y divide-border border-y border-border">
           {shown.map((m) => (
-            <EmailItem key={m.id} email={m} onToggleDone={handleToggleDone} />
+            <EmailItem
+              key={m.id}
+              email={m}
+              userEmail={userEmail}
+              onToggleDone={handleToggleDone}
+            />
           ))}
         </ul>
       ) : null}
