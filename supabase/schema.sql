@@ -33,8 +33,29 @@ create table if not exists sync_state (
   updated_at      timestamptz not null default now()
 );
 
+-- 2-b) 사용자 규칙 (구조 규칙)
+create table if not exists rules (
+  id          bigint generated always as identity primary key,
+  user_email  text not null,
+  match_type  text not null,   -- 'from_domain' | 'from_address' | 'subject_contains'
+  pattern     text not null,
+  category    text not null,   -- '개인' | '학교일' | '기타'
+  enabled     boolean not null default true,
+  created_at  timestamptz not null default now()
+);
+create index if not exists idx_rules_user on rules (user_email, id);
+
+-- 2-c) 사용자 설정 (AI 분류 지침 등)
+create table if not exists user_settings (
+  user_email         text primary key,
+  classify_guideline text not null default '',
+  updated_at         timestamptz not null default now()
+);
+
 -- 3) RLS 활성화 (정책은 두지 않음)
 --    서버는 secret 키로 접근하므로 RLS를 우회한다.
 --    혹시 URL+공개키가 유출돼도 데이터가 노출되지 않도록 기본 차단.
 alter table email_analysis enable row level security;
 alter table sync_state     enable row level security;
+alter table rules          enable row level security;
+alter table user_settings  enable row level security;

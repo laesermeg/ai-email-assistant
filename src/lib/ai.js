@@ -76,19 +76,31 @@ export async function askForText({ system, user, maxTokens = 1024 }) {
 
 /** 앞뒤에 ```json 같은 장식이 붙어 있어도 JSON 부분만 뽑아 파싱한다. */
 function parseJsonLoose(text) {
-  const cleaned = text
+  let cleaned = text
     .trim()
     .replace(/^```(?:json)?/i, "")
     .replace(/```$/, "")
     .trim();
-  try {
-    return JSON.parse(cleaned);
-  } catch {
-    const start = cleaned.indexOf("{");
-    const end = cleaned.lastIndexOf("}");
+
+  // { ... } 범위만 남기기
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start > 0 || (end !== -1 && end < cleaned.length - 1)) {
     if (start !== -1 && end !== -1 && end > start) {
-      return JSON.parse(cleaned.slice(start, end + 1));
+      cleaned = cleaned.slice(start, end + 1);
     }
-    throw new Error("AI 응답을 JSON 으로 해석하지 못했습니다.");
   }
+
+  const candidates = [
+    cleaned,
+    cleaned.replace(/,\s*([}\]])/g, "$1"), // 마지막 쉼표 제거
+  ];
+  for (const c of candidates) {
+    try {
+      return JSON.parse(c);
+    } catch {
+      /* 다음 후보 시도 */
+    }
+  }
+  throw new Error("AI 응답을 JSON 으로 해석하지 못했습니다.");
 }

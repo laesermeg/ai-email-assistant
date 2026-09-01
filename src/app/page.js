@@ -1,5 +1,5 @@
 import { auth, signIn, signOut } from "@/auth";
-import EmailList from "./email-list";
+import Dashboard from "./dashboard";
 
 /**
  * 첫 화면 (미니멀 흑백 스타일).
@@ -63,7 +63,7 @@ export default async function Home() {
                 </div>
               </dl>
 
-              <EmailList />
+              <Dashboard />
             </div>
           ) : (
             <div className="flex flex-col gap-8">

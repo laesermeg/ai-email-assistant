@@ -35,16 +35,26 @@ const SYSTEM_PROMPT = `당신은 대학 교수의 이메일을 정리하는 비�
 
 {"results":[{"id":"<메일 id>","category":"개인","reason":"<한 문장 이유>","summary":{"who":"","what":"","deadline":"","replyNeeded":false}}]}`;
 
-/**
- * 메일 목록을 한 번에 분류 + 요약한다.
- * AI에는 발신자 / 제목 / 한 줄 미리보기만 보낸다 (본문·원문은 보내지 않음).
- *
- * @param {Array<{id,from,subject,snippet}>} emails
- * @returns {Promise<Array<{id, category, reason, summary}>>} 원본과 같은 순서
- */
-export async function analyzeEmails(emails) {
-  if (!emails || emails.length === 0) return [];
+/** 한 번의 AI 호출로 처리할 메일 수 (너무 많으면 응답 JSON이 깨지기 쉬움) */
+const CHUNK_SIZE = 6;
 
+/** 사용자 지침이 있으면 시스템 프롬프트 뒤에 덧붙인다. */
+function buildSystem(guideline) {
+  const g = (guideline || "").trim();
+  if (!g) return SYSTEM_PROMPT;
+  return (
+    SYSTEM_PROMPT +
+    `\n\n[사용자 지침 — 분류 시 아래를 우선 반영하세요]\n${g}`
+  );
+}
+
+/**
+ * 메일 묶음 하나를 분류 + 요약한다. JSON 파싱 실패 시 1회 재시도.
+ * @param {Array<{id,from,subject,snippet}>} emails
+ * @param {string} guideline
+ * @returns {Promise<Array<{id, category, reason, summary}>>}
+ */
+async function analyzeChunk(emails, guideline) {
   const list = emails
     .map(
       (m, i) =>
@@ -55,15 +65,22 @@ export async function analyzeEmails(emails) {
     )
     .join("\n\n");
 
-  const data = await askForJson({
-    system: SYSTEM_PROMPT,
+  const params = {
+    system: buildSystem(guideline),
     user: `다음 ${emails.length}개의 메일을 분류하고 요약하세요.\n\n${list}`,
     maxTokens: 4096,
-  });
+  };
+
+  let data;
+  try {
+    data = await askForJson(params);
+  } catch {
+    // 모델이 가끔 깨진 JSON을 뱉음 → 한 번만 다시 시도
+    data = await askForJson(params);
+  }
 
   const byId = new Map((data.results || []).map((r) => [String(r.id), r]));
 
-  // AI가 일부 항목을 빠뜨렸어도 원본 순서대로 빠짐없이 채운다.
   return emails.map((m) => {
     const r = byId.get(String(m.id));
     const category = CATEGORIES.includes(r?.category) ? r.category : "기타";
@@ -80,4 +97,27 @@ export async function analyzeEmails(emails) {
       },
     };
   });
+}
+
+/**
+ * 메일 목록을 분류 + 요약한다.
+ * CHUNK_SIZE 개씩 나눠 병렬로 처리한다 (빠르고, 응답 JSON도 덜 깨짐).
+ * AI에는 발신자 / 제목 / 한 줄 미리보기만 보낸다 (본문·원문은 보내지 않음).
+ *
+ * @param {Array<{id,from,subject,snippet}>} emails
+ * @param {string} [guideline]  사용자 자연어 분류 지침 (선택)
+ * @returns {Promise<Array<{id, category, reason, summary}>>} 원본과 같은 순서
+ */
+export async function analyzeEmails(emails, guideline = "") {
+  if (!emails || emails.length === 0) return [];
+
+  const chunks = [];
+  for (let i = 0; i < emails.length; i += CHUNK_SIZE) {
+    chunks.push(emails.slice(i, i + CHUNK_SIZE));
+  }
+
+  const results = await Promise.all(
+    chunks.map((c) => analyzeChunk(c, guideline))
+  );
+  return results.flat();
 }

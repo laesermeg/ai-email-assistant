@@ -20,11 +20,11 @@ export default function EmailList() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function load() {
+  async function load(refresh = false) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/emails");
+      const res = await fetch(refresh ? "/api/emails?refresh=1" : "/api/emails");
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "요청에 실패했어요.");
 
@@ -46,13 +46,24 @@ export default function EmailList() {
 
   return (
     <div className="flex flex-col gap-4">
-      <button
-        onClick={load}
-        disabled={loading}
-        className="self-start border border-foreground px-4 py-2 text-sm font-medium transition-opacity hover:opacity-70 disabled:opacity-40"
-      >
-        {loading ? "불러오는 중…" : "최근 메일 불러오기"}
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => load(false)}
+          disabled={loading}
+          className="border border-foreground px-4 py-2 text-sm font-medium transition-opacity hover:opacity-70 disabled:opacity-40"
+        >
+          {loading ? "불러오는 중…" : "최근 메일 불러오기"}
+        </button>
+        {emails ? (
+          <button
+            onClick={() => load(true)}
+            disabled={loading}
+            className="border border-border px-4 py-2 text-sm text-muted transition-colors hover:text-foreground disabled:opacity-40"
+          >
+            규칙 반영해 다시 분석
+          </button>
+        ) : null}
+      </div>
 
       {error ? <p className="text-sm text-muted">오류: {error}</p> : null}
 
