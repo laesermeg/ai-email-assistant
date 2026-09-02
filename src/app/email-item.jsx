@@ -208,15 +208,13 @@ export default function EmailItem({
               <dt className="w-9 shrink-0 text-muted">용건</dt>
               <dd className="flex-1">
                 {s.what}
-                {!expanded ? (
-                  <button
-                    type="button"
-                    onClick={toggleExpand}
-                    className="ml-2 text-muted underline underline-offset-2 transition-colors hover:text-foreground"
-                  >
-                    펼치기
-                  </button>
-                ) : null}
+                <button
+                  type="button"
+                  onClick={toggleExpand}
+                  className="ml-2 text-muted underline underline-offset-2 transition-colors hover:text-foreground"
+                >
+                  {expanded ? "접기" : "펼치기"}
+                </button>
               </dd>
             </div>
           ) : null}
@@ -228,46 +226,37 @@ export default function EmailItem({
         </p>
       ) : null}
 
-      {/* 요약(용건)이 없을 때만 펼치기를 별도 줄로 */}
-      {!expanded && !(!isOther && s?.what) ? (
+      {/* 요약(용건)이 없을 때만 펼치기/접기를 별도 줄로 */}
+      {!(!isOther && s?.what) ? (
         <button
           type="button"
           onClick={toggleExpand}
           className="mt-1.5 block text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
         >
-          펼치기
+          {expanded ? "접기" : "펼치기"}
         </button>
       ) : null}
 
-      {/* 펼친 본문 + 아래에 "접기" */}
+      {/* 펼친 본문 */}
       {expanded ? (
-        <div className="mt-2 flex flex-col gap-2">
-          <div className="flex flex-col gap-2 border border-border p-3">
-            {bodyLoading ? (
-              <p className="text-xs text-muted">불러오는 중…</p>
-            ) : bodyError ? (
-              <p className="text-xs text-muted">오류: {bodyError}</p>
-            ) : (
-              <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words text-xs leading-relaxed">
-                {fullBody}
-              </pre>
-            )}
-            <a
-              href={mailUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="self-start text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
-            >
-              메일에서 열기 →
-            </a>
-          </div>
-          <button
-            type="button"
-            onClick={toggleExpand}
-            className="block text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
+        <div className="mt-2 flex flex-col gap-2 border border-border p-3">
+          {bodyLoading ? (
+            <p className="text-xs text-muted">불러오는 중…</p>
+          ) : bodyError ? (
+            <p className="text-xs text-muted">오류: {bodyError}</p>
+          ) : (
+            <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words text-xs leading-relaxed">
+              {fullBody}
+            </pre>
+          )}
+          <a
+            href={mailUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="self-start text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
           >
-            접기
-          </button>
+            메일에서 열기 →
+          </a>
         </div>
       ) : null}
 
