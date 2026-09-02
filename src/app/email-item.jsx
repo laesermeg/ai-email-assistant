@@ -58,6 +58,49 @@ export default function EmailItem({
         (userEmail ? `?authuser=${encodeURIComponent(userEmail)}` : `u/0/`) +
         `#all/${m.threadId || m.id}`;
 
+  // 제목 클릭 = 본문 펼쳐 보기 / 더블클릭 = 웹메일에서 열기
+  const [expanded, setExpanded] = useState(false);
+  const [fullBody, setFullBody] = useState(null);
+  const [bodyLoading, setBodyLoading] = useState(false);
+  const [bodyError, setBodyError] = useState("");
+  const clickTimer = useRef(null);
+
+  async function loadBody() {
+    if (fullBody || bodyLoading) return;
+    setBodyLoading(true);
+    setBodyError("");
+    try {
+      const res = await fetch(`/api/email-body?id=${encodeURIComponent(m.id)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "불러오기 실패");
+      setFullBody(data.body || "(본문 없음)");
+    } catch (e) {
+      setBodyError(e.message);
+    } finally {
+      setBodyLoading(false);
+    }
+  }
+
+  function handleSubjectClick() {
+    if (clickTimer.current) return; // 더블클릭 진행 중
+    clickTimer.current = setTimeout(() => {
+      clickTimer.current = null;
+      setExpanded((v) => {
+        const next = !v;
+        if (next) loadBody();
+        return next;
+      });
+    }, 220);
+  }
+
+  function handleSubjectDoubleClick() {
+    if (clickTimer.current) {
+      clearTimeout(clickTimer.current);
+      clickTimer.current = null;
+    }
+    window.open(mailUrl, "_blank", "noopener,noreferrer");
+  }
+
   const [togglingDone, setTogglingDone] = useState(false);
   const [instruction, setInstruction] = useState("");
   const [subject, setSubject] = useState("");
@@ -142,18 +185,18 @@ export default function EmailItem({
         <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted">
           {m.category || "미분류"}
         </span>
-        <a
-          href={mailUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          title="메일에서 열기"
+        <button
+          type="button"
+          onClick={handleSubjectClick}
+          onDoubleClick={handleSubjectDoubleClick}
+          title="클릭: 내용 보기 · 더블클릭: 메일에서 열기"
           className={
-            "truncate text-sm font-medium underline-offset-2 hover:underline " +
+            "truncate text-left text-sm font-medium underline-offset-2 hover:underline " +
             (done ? "line-through" : "")
           }
         >
           {m.subject || "(제목 없음)"}
-        </a>
+        </button>
         {s?.replyNeeded && !done ? (
           <span className="shrink-0 border border-foreground px-1.5 py-0.5 text-[10px] font-semibold">
             답장 필요
@@ -173,6 +216,30 @@ export default function EmailItem({
           <span className="shrink-0">· {shortDate(m.date)}</span>
         ) : null}
       </p>
+
+      {/* 펼친 본문 (제목 한 번 클릭) */}
+      {expanded ? (
+        <div className="mt-2 border border-border p-3 text-xs">
+          {bodyLoading ? (
+            <p className="text-muted">불러오는 중…</p>
+          ) : bodyError ? (
+            <p className="text-muted">오류: {bodyError}</p>
+          ) : (
+            <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words font-sans leading-relaxed">
+              {fullBody}
+            </pre>
+          )}
+          <button
+            type="button"
+            onClick={() =>
+              window.open(mailUrl, "_blank", "noopener,noreferrer")
+            }
+            className="mt-2 text-[11px] text-muted underline underline-offset-2 hover:text-foreground"
+          >
+            메일에서 열기 ↗
+          </button>
+        </div>
+      ) : null}
 
       {/* 요약 (기타가 아니고 요약이 있을 때만) */}
       {!isOther && hasSummary(s) ? (
