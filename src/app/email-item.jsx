@@ -169,6 +169,14 @@ export default function EmailItem({
     <li className={(isOther || done ? "opacity-45 " : "") + "py-4"}>
       {/* 제목 줄 */}
       <div className="flex items-baseline gap-2">
+        <input
+          type="checkbox"
+          checked={done}
+          onChange={toggleDone}
+          disabled={togglingDone}
+          title={done ? "확인 완료됨 (클릭하면 해제)" : "확인 완료로 표시"}
+          className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-black disabled:opacity-40 dark:accent-white"
+        />
         <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted">
           {m.category || "미분류"}
         </span>
@@ -194,19 +202,6 @@ export default function EmailItem({
         {shortDate(m.date) ? (
           <span className="shrink-0">· {shortDate(m.date)}</span>
         ) : null}
-        <label
-          title={done ? "확인 완료됨 (클릭하면 해제)" : "확인 완료로 표시"}
-          className="ml-auto flex shrink-0 flex-col items-center gap-0.5 leading-none"
-        >
-          <input
-            type="checkbox"
-            checked={done}
-            onChange={toggleDone}
-            disabled={togglingDone}
-            className="h-4 w-4 cursor-pointer accent-black disabled:opacity-40 dark:accent-white"
-          />
-          <span className="text-[10px]">확인</span>
-        </label>
       </p>
 
       {/* 요약 (누가/용건/날짜). 용건 옆에 "펼치기" */}
