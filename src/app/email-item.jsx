@@ -212,37 +212,45 @@ export default function EmailItem({
         </p>
       ) : null}
 
-      {/* 용건 아래 "더보기" 느낌의 펼치기 */}
-      <button
-        type="button"
-        onClick={toggleExpand}
-        className="mt-1.5 block text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
-      >
-        {expanded ? "접기" : "펼치기"}
-      </button>
-
-      {/* 메일 전체 내용 */}
-      {expanded ? (
-        <div className="mt-2 flex flex-col gap-2 border border-border p-3">
-          {bodyLoading ? (
-            <p className="text-xs text-muted">불러오는 중…</p>
-          ) : bodyError ? (
-            <p className="text-xs text-muted">오류: {bodyError}</p>
-          ) : (
-            <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words text-xs leading-relaxed">
-              {fullBody}
-            </pre>
-          )}
-          <a
-            href={mailUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="self-start text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
+      {/* 용건 아래 "더보기" 느낌의 펼치기 (펼쳐지면 아래에 "접기") */}
+      {!expanded ? (
+        <button
+          type="button"
+          onClick={toggleExpand}
+          className="mt-1.5 block text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
+        >
+          펼치기
+        </button>
+      ) : (
+        <div className="mt-2 flex flex-col gap-2">
+          <div className="flex flex-col gap-2 border border-border p-3">
+            {bodyLoading ? (
+              <p className="text-xs text-muted">불러오는 중…</p>
+            ) : bodyError ? (
+              <p className="text-xs text-muted">오류: {bodyError}</p>
+            ) : (
+              <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words text-xs leading-relaxed">
+                {fullBody}
+              </pre>
+            )}
+            <a
+              href={mailUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="self-start text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
+            >
+              메일에서 열기 →
+            </a>
+          </div>
+          <button
+            type="button"
+            onClick={toggleExpand}
+            className="block text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
           >
-            메일에서 열기 →
-          </a>
+            접기
+          </button>
         </div>
-      ) : null}
+      )}
 
       {/* 답장 초안/전송 영역 (기타·완료 제외) */}
       {!isOther && !done ? (
