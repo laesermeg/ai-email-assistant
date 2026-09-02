@@ -199,11 +199,27 @@ export default function EmailItem({
         ) : null}
       </p>
 
-      {/* 요약 (누가/용건/날짜) */}
+      {/* 요약 (누가/용건/날짜). 용건 옆에 "펼치기" */}
       {!isOther && hasSummary(s) ? (
         <dl className="mt-2 border-l border-border pl-3 text-xs">
           {s.who ? <Row label="누가">{s.who}</Row> : null}
-          {s.what ? <Row label="용건">{s.what}</Row> : null}
+          {s.what ? (
+            <div className="flex gap-2 py-0.5">
+              <dt className="w-9 shrink-0 text-muted">용건</dt>
+              <dd className="flex-1">
+                {s.what}
+                {!expanded ? (
+                  <button
+                    type="button"
+                    onClick={toggleExpand}
+                    className="ml-2 text-muted underline underline-offset-2 transition-colors hover:text-foreground"
+                  >
+                    펼치기
+                  </button>
+                ) : null}
+              </dd>
+            </div>
+          ) : null}
           {s.deadline ? <Row label="날짜">{s.deadline}</Row> : null}
         </dl>
       ) : m.categoryReason || m.snippet ? (
@@ -212,8 +228,8 @@ export default function EmailItem({
         </p>
       ) : null}
 
-      {/* 용건 아래 "더보기" 느낌의 펼치기 (펼쳐지면 아래에 "접기") */}
-      {!expanded ? (
+      {/* 요약(용건)이 없을 때만 펼치기를 별도 줄로 */}
+      {!expanded && !(!isOther && s?.what) ? (
         <button
           type="button"
           onClick={toggleExpand}
@@ -221,7 +237,10 @@ export default function EmailItem({
         >
           펼치기
         </button>
-      ) : (
+      ) : null}
+
+      {/* 펼친 본문 + 아래에 "접기" */}
+      {expanded ? (
         <div className="mt-2 flex flex-col gap-2">
           <div className="flex flex-col gap-2 border border-border p-3">
             {bodyLoading ? (
@@ -250,7 +269,7 @@ export default function EmailItem({
             접기
           </button>
         </div>
-      )}
+      ) : null}
 
       {/* 답장 초안/전송 영역 (기타·완료 제외) */}
       {!isOther && !done ? (
