@@ -203,7 +203,20 @@ export default function EmailItem({
         ) : null}
       </p>
 
-      {/* 제목 클릭 → 메일 전체 내용 + "자세히 보기" */}
+      {/* 요약 (누가/용건/날짜) — 항상 위에 */}
+      {!isOther && hasSummary(s) ? (
+        <dl className="mt-2 border-l border-border pl-3 text-xs">
+          {s.who ? <Row label="누가">{s.who}</Row> : null}
+          {s.what ? <Row label="용건">{s.what}</Row> : null}
+          {s.deadline ? <Row label="날짜">{s.deadline}</Row> : null}
+        </dl>
+      ) : m.categoryReason || m.snippet ? (
+        <p className="mt-1 line-clamp-2 text-xs text-muted">
+          {m.categoryReason || m.snippet}
+        </p>
+      ) : null}
+
+      {/* 제목 클릭 → 메일 전체 내용 (요약 아래에 펼쳐짐) */}
       {expanded ? (
         <div className="mt-2 flex flex-col gap-2 border border-border p-3">
           {bodyLoading ? (
@@ -221,22 +234,9 @@ export default function EmailItem({
             rel="noopener noreferrer"
             className="self-start text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
           >
-            자세히 보기 (메일에서 열기) →
+            메일에서 열기 →
           </a>
         </div>
-      ) : null}
-
-      {/* 요약 (기타가 아니고 요약이 있을 때만) */}
-      {!isOther && hasSummary(s) ? (
-        <dl className="mt-2 border-l border-border pl-3 text-xs">
-          {s.who ? <Row label="누가">{s.who}</Row> : null}
-          {s.what ? <Row label="용건">{s.what}</Row> : null}
-          {s.deadline ? <Row label="날짜">{s.deadline}</Row> : null}
-        </dl>
-      ) : m.categoryReason || m.snippet ? (
-        <p className="mt-1 line-clamp-2 text-xs text-muted">
-          {m.categoryReason || m.snippet}
-        </p>
       ) : null}
 
       {/* 답장 초안/전송 영역 (기타·완료 제외) */}
