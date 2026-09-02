@@ -188,20 +188,20 @@ export default function EmailItem({
             답장 필요
           </span>
         ) : null}
-        <input
-          type="checkbox"
-          checked={done}
-          onChange={toggleDone}
-          disabled={togglingDone}
-          title={done ? "확인 완료됨 (클릭하면 해제)" : "확인 완료로 표시"}
-          className="ml-auto mr-1.5 h-4 w-4 shrink-0 cursor-pointer self-center accent-black disabled:opacity-40 dark:accent-white"
-        />
       </div>
       <p className="mt-0.5 flex items-center gap-2 text-xs text-muted">
         <span className="truncate">{m.from}</span>
         {shortDate(m.date) ? (
           <span className="shrink-0">· {shortDate(m.date)}</span>
         ) : null}
+        <input
+          type="checkbox"
+          checked={done}
+          onChange={toggleDone}
+          disabled={togglingDone}
+          title={done ? "확인 완료됨 (클릭하면 해제)" : "확인 완료로 표시"}
+          className="ml-auto mr-1.5 h-4 w-4 shrink-0 cursor-pointer accent-black disabled:opacity-40 dark:accent-white"
+        />
       </p>
 
       {/* 요약 (누가/용건/날짜). 용건 옆에 "펼치기" */}
