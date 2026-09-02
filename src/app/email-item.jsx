@@ -172,13 +172,17 @@ export default function EmailItem({
         <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted">
           {m.category || "미분류"}
         </span>
-        <span
+        <button
+          type="button"
+          onClick={toggleExpand}
+          title="클릭하면 메일 내용을 펼칩니다"
           className={
-            "truncate text-sm font-medium " + (done ? "line-through" : "")
+            "truncate text-left text-sm font-medium underline-offset-2 hover:underline " +
+            (done ? "line-through" : "")
           }
         >
           {m.subject || "(제목 없음)"}
-        </span>
+        </button>
         {s?.replyNeeded && !done ? (
           <span className="shrink-0 border border-foreground px-1.5 py-0.5 text-[10px] font-semibold">
             답장 필요
