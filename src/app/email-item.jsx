@@ -172,26 +172,29 @@ export default function EmailItem({
         <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted">
           {m.category || "미분류"}
         </span>
-        <button
-          type="button"
-          onClick={toggleExpand}
-          title="클릭하면 메일 내용을 봅니다"
+        <span
           className={
-            "truncate text-left text-sm font-medium underline-offset-2 hover:underline " +
-            (done ? "line-through" : "")
+            "truncate text-sm font-medium " + (done ? "line-through" : "")
           }
         >
           {m.subject || "(제목 없음)"}
-        </button>
+        </span>
         {s?.replyNeeded && !done ? (
           <span className="shrink-0 border border-foreground px-1.5 py-0.5 text-[10px] font-semibold">
             답장 필요
           </span>
         ) : null}
         <button
+          type="button"
+          onClick={toggleExpand}
+          className="ml-auto shrink-0 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
+        >
+          {expanded ? "접기" : "펼치기"}
+        </button>
+        <button
           onClick={toggleDone}
           disabled={togglingDone}
-          className="ml-auto shrink-0 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground disabled:opacity-40"
+          className="shrink-0 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground disabled:opacity-40"
         >
           {done ? "되돌리기" : "확인 완료"}
         </button>
