@@ -179,31 +179,31 @@ export default function EmailItem({
         >
           {m.subject || "(제목 없음)"}
         </span>
+        {shortDate(m.date) ? (
+          <span className="shrink-0 text-xs text-muted">{shortDate(m.date)}</span>
+        ) : null}
         {s?.replyNeeded && !done ? (
           <span className="shrink-0 border border-foreground px-1.5 py-0.5 text-[10px] font-semibold">
             답장 필요
           </span>
         ) : null}
         <button
-          type="button"
-          onClick={toggleExpand}
-          className="ml-auto shrink-0 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
-        >
-          {expanded ? "접기" : "펼치기"}
-        </button>
-        <button
           onClick={toggleDone}
           disabled={togglingDone}
-          className="shrink-0 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground disabled:opacity-40"
+          className="ml-auto shrink-0 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground disabled:opacity-40"
         >
           {done ? "되돌리기" : "확인 완료"}
         </button>
       </div>
-      <p className="mt-0.5 flex gap-2 text-xs text-muted">
+      <p className="mt-0.5 flex items-baseline gap-2 text-xs text-muted">
         <span className="truncate">{m.from}</span>
-        {shortDate(m.date) ? (
-          <span className="shrink-0">· {shortDate(m.date)}</span>
-        ) : null}
+        <button
+          type="button"
+          onClick={toggleExpand}
+          className="ml-auto shrink-0 underline underline-offset-2 transition-colors hover:text-foreground"
+        >
+          {expanded ? "접기" : "펼치기"}
+        </button>
       </p>
 
       {/* 요약 (누가/용건/날짜) — 항상 위에 */}
