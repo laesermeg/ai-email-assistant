@@ -42,7 +42,6 @@ export default function EmailList({ userEmail }) {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("all");
   const [count, setCount] = useState(30);
-  const [showDone, setShowDone] = useState(false);
 
   // 어떤 메일의 "확인 완료" 상태가 바뀌면 목록에도 반영
   function handleToggleDone(id, done) {
@@ -107,18 +106,13 @@ export default function EmailList({ userEmail }) {
     return c;
   }, [emails]);
 
-  const doneCount = useMemo(
-    () => (emails || []).filter((m) => m.done).length,
-    [emails]
-  );
-
   const shown = useMemo(() => {
     if (!emails) return [];
-    let list = filter === "all" ? emails : emails.filter((m) => m.category === filter);
-    if (!showDone) list = list.filter((m) => !m.done);
-    // 완료한 메일은 아래로
-    return [...list].sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1));
-  }, [emails, filter, showDone]);
+    // 확인 완료해도 자리 그대로 (흐리게만). 분류 필터만 적용.
+    return filter === "all"
+      ? emails
+      : emails.filter((m) => m.category === filter);
+  }, [emails, filter]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -183,7 +177,7 @@ export default function EmailList({ userEmail }) {
         </p>
       ) : null}
 
-      {/* 분류 탭 + 완료 표시 토글 */}
+      {/* 분류 탭 */}
       {emails ? (
         <div className="flex items-center gap-1 border-b border-border">
           {FILTERS.map((f) => (
@@ -201,14 +195,6 @@ export default function EmailList({ userEmail }) {
               <span className="ml-1 text-xs text-muted">{counts[f.id]}</span>
             </button>
           ))}
-          {doneCount > 0 ? (
-            <button
-              onClick={() => setShowDone((v) => !v)}
-              className="ml-auto shrink-0 px-2 py-2 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
-            >
-              {showDone ? "완료 숨기기" : `완료 ${doneCount}개 표시`}
-            </button>
-          ) : null}
         </div>
       ) : null}
 
@@ -217,11 +203,7 @@ export default function EmailList({ userEmail }) {
       ) : null}
 
       {emails && emails.length > 0 && shown.length === 0 ? (
-        <p className="text-sm text-muted">
-          {filter === "all" && !showDone
-            ? "모두 확인 완료했어요."
-            : "이 분류에 해당하는 메일이 없어요."}
-        </p>
+        <p className="text-sm text-muted">이 분류에 해당하는 메일이 없어요.</p>
       ) : null}
 
       {shown.length > 0 ? (
