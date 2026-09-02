@@ -188,9 +188,15 @@ export default function EmailItem({
             답장 필요
           </span>
         ) : null}
+      </div>
+      <p className="mt-0.5 flex items-center gap-2 text-xs text-muted">
+        <span className="truncate">{m.from}</span>
+        {shortDate(m.date) ? (
+          <span className="shrink-0">· {shortDate(m.date)}</span>
+        ) : null}
         <label
           title={done ? "확인 완료됨 (클릭하면 해제)" : "확인 완료로 표시"}
-          className="ml-auto flex shrink-0 items-center gap-1.5 self-center text-xs text-muted"
+          className="ml-auto flex shrink-0 items-center gap-1.5"
         >
           <input
             type="checkbox"
@@ -201,12 +207,6 @@ export default function EmailItem({
           />
           확인
         </label>
-      </div>
-      <p className="mt-0.5 flex gap-2 text-xs text-muted">
-        <span className="truncate">{m.from}</span>
-        {shortDate(m.date) ? (
-          <span className="shrink-0">· {shortDate(m.date)}</span>
-        ) : null}
       </p>
 
       {/* 요약 (누가/용건/날짜). 용건 옆에 "펼치기" */}
