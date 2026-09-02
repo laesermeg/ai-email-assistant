@@ -64,7 +64,13 @@ export async function GET(request) {
     list = await mail.listRecentMessageIds(session, count);
   } catch (err) {
     console.error("[/api/emails] gmail list", err.message);
-    return Response.json({ error: "메일 목록을 가져오지 못했어요." }, { status: 502 });
+    return Response.json(
+      {
+        error:
+          "메일 목록을 가져오지 못했어요. 위에서 개수를 줄여 다시 시도해 보세요.",
+      },
+      { status: 502 }
+    );
   }
   const ids = list.map((l) => l.id);
   const threadById = new Map(list.map((l) => [l.id, l.threadId]));
@@ -87,7 +93,10 @@ export async function GET(request) {
     } catch (err) {
       console.error("[/api/emails] gmail meta", err.message);
       return Response.json(
-        { error: "메일 정보를 가져오지 못했어요." },
+        {
+          error:
+            "메일 정보를 가져오지 못했어요. 위에서 개수를 줄여 다시 시도해 보세요.",
+        },
         { status: 502 }
       );
     }
