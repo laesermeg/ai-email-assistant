@@ -185,16 +185,9 @@ export default function EmailItem({
           </span>
         ) : null}
         <button
-          type="button"
-          onClick={toggleExpand}
-          className="ml-auto shrink-0 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
-        >
-          {expanded ? "접기" : "펼치기"}
-        </button>
-        <button
           onClick={toggleDone}
           disabled={togglingDone}
-          className="shrink-0 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground disabled:opacity-40"
+          className="ml-auto shrink-0 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground disabled:opacity-40"
         >
           {done ? "되돌리기" : "확인 완료"}
         </button>
@@ -206,7 +199,7 @@ export default function EmailItem({
         ) : null}
       </p>
 
-      {/* 요약 (누가/용건/날짜) — 항상 위에 */}
+      {/* 요약 (누가/용건/날짜) */}
       {!isOther && hasSummary(s) ? (
         <dl className="mt-2 border-l border-border pl-3 text-xs">
           {s.who ? <Row label="누가">{s.who}</Row> : null}
@@ -219,7 +212,16 @@ export default function EmailItem({
         </p>
       ) : null}
 
-      {/* 제목 클릭 → 메일 전체 내용 (요약 아래에 펼쳐짐) */}
+      {/* 용건 아래 "더보기" 느낌의 펼치기 */}
+      <button
+        type="button"
+        onClick={toggleExpand}
+        className="mt-1.5 block text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground"
+      >
+        {expanded ? "접기" : "펼치기"}
+      </button>
+
+      {/* 메일 전체 내용 */}
       {expanded ? (
         <div className="mt-2 flex flex-col gap-2 border border-border p-3">
           {bodyLoading ? (
