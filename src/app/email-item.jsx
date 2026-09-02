@@ -188,13 +188,19 @@ export default function EmailItem({
             답장 필요
           </span>
         ) : null}
-        <button
-          onClick={toggleDone}
-          disabled={togglingDone}
-          className="ml-auto shrink-0 text-xs text-muted underline underline-offset-2 transition-colors hover:text-foreground disabled:opacity-40"
+        <label
+          title={done ? "확인 완료됨 (클릭하면 해제)" : "확인 완료로 표시"}
+          className="ml-auto flex shrink-0 items-center gap-1.5 self-center text-xs text-muted"
         >
-          {done ? "되돌리기" : "확인 완료"}
-        </button>
+          <input
+            type="checkbox"
+            checked={done}
+            onChange={toggleDone}
+            disabled={togglingDone}
+            className="h-4 w-4 cursor-pointer accent-black disabled:opacity-40 dark:accent-white"
+          />
+          확인
+        </label>
       </div>
       <p className="mt-0.5 flex gap-2 text-xs text-muted">
         <span className="truncate">{m.from}</span>
