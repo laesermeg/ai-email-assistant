@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 /** 요약에 내용이 하나라도 있는지 */
 function hasSummary(s) {
