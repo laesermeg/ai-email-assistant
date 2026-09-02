@@ -169,14 +169,19 @@ export default function EmailItem({
     <li className={(isOther || done ? "opacity-45 " : "") + "py-4"}>
       {/* 제목 줄 */}
       <div className="flex items-baseline gap-2">
-        <input
-          type="checkbox"
-          checked={done}
-          onChange={toggleDone}
-          disabled={togglingDone}
+        <label
           title={done ? "확인 완료됨 (클릭하면 해제)" : "확인 완료로 표시"}
-          className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-black disabled:opacity-40 dark:accent-white"
-        />
+          className="flex shrink-0 items-center gap-1.5 self-center text-xs text-muted"
+        >
+          <input
+            type="checkbox"
+            checked={done}
+            onChange={toggleDone}
+            disabled={togglingDone}
+            className="h-4 w-4 cursor-pointer accent-black disabled:opacity-40 dark:accent-white"
+          />
+          확인
+        </label>
         <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-muted">
           {m.category || "미분류"}
         </span>
