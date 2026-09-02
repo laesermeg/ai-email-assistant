@@ -196,7 +196,7 @@ export default function EmailItem({
         ) : null}
         <label
           title={done ? "확인 완료됨 (클릭하면 해제)" : "확인 완료로 표시"}
-          className="ml-auto flex shrink-0 items-center gap-1.5"
+          className="ml-auto flex shrink-0 flex-col items-center gap-0.5 leading-none"
         >
           <input
             type="checkbox"
@@ -205,7 +205,7 @@ export default function EmailItem({
             disabled={togglingDone}
             className="h-4 w-4 cursor-pointer accent-black disabled:opacity-40 dark:accent-white"
           />
-          확인
+          <span className="text-[10px]">확인</span>
         </label>
       </p>
 
