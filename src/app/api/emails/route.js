@@ -12,7 +12,7 @@
  * 저장하지 않는 것: 메일 본문·미리보기(snippet).
  */
 import { auth } from "@/auth";
-import { listRecentMessageIds, getMessagesMetadata } from "@/lib/gmail";
+import * as mail from "@/lib/mail";
 import { analyzeEmails } from "@/lib/analyze";
 import { getStoredAnalyses, saveAnalyses } from "@/lib/analysis-store";
 import { getRules, applyRules } from "@/lib/rules";
@@ -58,7 +58,7 @@ export async function GET(request) {
   // 1) 최근 메일 ID 목록 (가벼운 호출 1번)
   let list;
   try {
-    list = await listRecentMessageIds(session.accessToken, count);
+    list = await mail.listRecentMessageIds(session, count);
   } catch (err) {
     console.error("[/api/emails] gmail list", err.message);
     return Response.json({ error: "메일 목록을 가져오지 못했어요." }, { status: 502 });
@@ -80,7 +80,7 @@ export async function GET(request) {
   if (newIds.length > 0) {
     let newMeta;
     try {
-      newMeta = await getMessagesMetadata(session.accessToken, newIds);
+      newMeta = await mail.getMessagesMetadata(session, newIds);
     } catch (err) {
       console.error("[/api/emails] gmail meta", err.message);
       return Response.json(
@@ -206,6 +206,7 @@ export async function GET(request) {
 
   return Response.json({
     emails,
+    provider: session.provider,
     analyzed: analyzedOk,
     newlyAnalyzed: newIds.length,
     fromCache: ids.length - newIds.length,

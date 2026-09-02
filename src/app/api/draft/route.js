@@ -5,7 +5,7 @@
  * 아직 아무것도 보내지 않는다 (초안만 생성).
  */
 import { auth } from "@/auth";
-import { getEmailWithBody } from "@/lib/gmail";
+import * as mail from "@/lib/mail";
 import { draftReply } from "@/lib/draft";
 
 export async function POST(request) {
@@ -15,7 +15,7 @@ export async function POST(request) {
   }
   if (session.error === "RefreshAccessTokenError" || !session.accessToken) {
     return Response.json(
-      { error: "Gmail 연결이 만료됐어요. 다시 로그인해 주세요." },
+      { error: "메일 연결이 만료됐어요. 다시 로그인해 주세요." },
       { status: 401 }
     );
   }
@@ -37,7 +37,7 @@ export async function POST(request) {
   }
 
   try {
-    const email = await getEmailWithBody(session.accessToken, emailId);
+    const email = await mail.getEmailWithBody(session, emailId);
     const draft = await draftReply(email, instruction);
     return Response.json({
       draft,

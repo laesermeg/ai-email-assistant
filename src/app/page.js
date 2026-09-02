@@ -53,12 +53,12 @@ export default async function Home() {
             needsReLogin ? (
               <div className="flex flex-col gap-4">
                 <p className="text-sm text-muted">
-                  Gmail 연결이 만료됐어요. 다시 로그인해 주세요.
+                  메일 연결이 만료됐어요. 다시 로그인해 주세요.
                 </p>
                 <form
                   action={async () => {
                     "use server";
-                    await signIn("google");
+                    await signIn(session.provider || "google");
                   }}
                 >
                   <button
@@ -86,22 +86,37 @@ export default async function Home() {
                 </p>
               </div>
 
-              <form
-                action={async () => {
-                  "use server";
-                  await signIn("google");
-                }}
-              >
-                <button
-                  type="submit"
-                  className="w-full border border-foreground bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-80"
+              <div className="flex flex-col gap-2">
+                <form
+                  action={async () => {
+                    "use server";
+                    await signIn("google");
+                  }}
                 >
-                  구글로 로그인
-                </button>
-              </form>
+                  <button
+                    type="submit"
+                    className="w-full border border-foreground bg-foreground px-5 py-3 text-sm font-medium text-background transition-opacity hover:opacity-80"
+                  >
+                    Google (Gmail)로 로그인
+                  </button>
+                </form>
+                <form
+                  action={async () => {
+                    "use server";
+                    await signIn("microsoft-entra-id");
+                  }}
+                >
+                  <button
+                    type="submit"
+                    className="w-full border border-foreground px-5 py-3 text-sm font-medium transition-opacity hover:opacity-70"
+                  >
+                    Microsoft (Outlook)로 로그인
+                  </button>
+                </form>
+              </div>
 
               <p className="text-xs leading-relaxed text-muted">
-                로그인 시 Gmail 읽기·보내기 권한을 요청합니다. 메일 원문은
+                로그인 시 메일 읽기·보내기 권한을 요청합니다. 메일 원문은
                 저장하지 않으며, 필요한 최소한의 정보만 사용합니다.
               </p>
             </div>

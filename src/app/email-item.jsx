@@ -37,17 +37,26 @@ function Row({ label, children }) {
  *  2) 받는사람·제목·본문을 미리보기 (본문·제목은 수정 가능)
  *  3) "보내기" → 확인창 승인 → 서버(/api/send)가 Gmail 로 전송
  */
-export default function EmailItem({ email, userEmail, onToggleDone }) {
+export default function EmailItem({
+  email,
+  userEmail,
+  provider = "google",
+  onToggleDone,
+}) {
   const m = email;
   const s = m.summary;
   const isOther = m.category === "기타";
   const done = m.done === true;
 
-  // Gmail 에서 이 메일(스레드)을 여는 링크
-  const gmailUrl =
-    `https://mail.google.com/mail/` +
-    (userEmail ? `?authuser=${encodeURIComponent(userEmail)}` : `u/0/`) +
-    `#all/${m.threadId || m.id}`;
+  // 원본 메일을 웹메일에서 여는 링크 (공급자별)
+  const mailUrl =
+    provider === "microsoft-entra-id"
+      ? `https://outlook.office.com/mail/deeplink/read/${encodeURIComponent(
+          m.id
+        )}`
+      : `https://mail.google.com/mail/` +
+        (userEmail ? `?authuser=${encodeURIComponent(userEmail)}` : `u/0/`) +
+        `#all/${m.threadId || m.id}`;
 
   const [togglingDone, setTogglingDone] = useState(false);
   const [instruction, setInstruction] = useState("");
@@ -134,10 +143,10 @@ export default function EmailItem({ email, userEmail, onToggleDone }) {
           {m.category || "미분류"}
         </span>
         <a
-          href={gmailUrl}
+          href={mailUrl}
           target="_blank"
           rel="noopener noreferrer"
-          title="Gmail에서 열기"
+          title="메일에서 열기"
           className={
             "truncate text-sm font-medium underline-offset-2 hover:underline " +
             (done ? "line-through" : "")

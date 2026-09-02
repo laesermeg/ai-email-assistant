@@ -36,6 +36,7 @@ function readSavedCount() {
 export default function EmailList({ userEmail }) {
   const [emails, setEmails] = useState(null);
   const [analyzed, setAnalyzed] = useState(true);
+  const [provider, setProvider] = useState("google");
   const [stats, setStats] = useState(null); // { newlyAnalyzed, fromCache }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -83,6 +84,7 @@ export default function EmailList({ userEmail }) {
       });
       setEmails(sorted);
       setAnalyzed(data.analyzed);
+      setProvider(data.provider || "google");
       setStats({
         newlyAnalyzed: data.newlyAnalyzed ?? 0,
         fromCache: data.fromCache ?? 0,
@@ -229,6 +231,7 @@ export default function EmailList({ userEmail }) {
               key={m.id}
               email={m}
               userEmail={userEmail}
+              provider={provider}
               onToggleDone={handleToggleDone}
             />
           ))}

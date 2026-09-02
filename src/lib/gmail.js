@@ -225,3 +225,22 @@ export async function sendMessage(accessToken, { raw, threadId }) {
   }
   return res.json();
 }
+
+/**
+ * 답장 전송 (graph.js 의 sendReply 와 같은 시그니처).
+ * @param {string} accessToken
+ * @param {{orig, subject, bodyText}} args  orig = getEmailWithBody() 결과
+ */
+export async function sendReply(accessToken, { orig, subject, bodyText }) {
+  const raw = buildRawReply({
+    to: orig.replyTo,
+    subject:
+      subject ||
+      (orig.subject.startsWith("Re:") ? orig.subject : `Re: ${orig.subject}`),
+    inReplyTo: orig.messageId,
+    references: [orig.references, orig.messageId].filter(Boolean).join(" "),
+    bodyText,
+  });
+  await sendMessage(accessToken, { raw, threadId: orig.threadId });
+  return { ok: true };
+}
