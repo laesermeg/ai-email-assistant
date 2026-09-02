@@ -1,4 +1,5 @@
 import { askForJson } from "./ai";
+import { mapLimit } from "./util";
 
 /** 허용되는 분류 값 */
 export const CATEGORIES = ["개인", "업무", "기타"];
@@ -101,22 +102,6 @@ async function analyzeChunk(emails, guideline) {
 
 /** 동시에 진행할 AI 호출 수 (무료 티어 분당 한도 대비 여유) */
 const CONCURRENCY = 3;
-
-/** 배열을 동시 실행 수 제한을 두고 처리한다. */
-async function mapLimit(items, limit, fn) {
-  const results = new Array(items.length);
-  let next = 0;
-  async function worker() {
-    while (next < items.length) {
-      const i = next++;
-      results[i] = await fn(items[i], i);
-    }
-  }
-  await Promise.all(
-    Array.from({ length: Math.min(limit, items.length) }, worker)
-  );
-  return results;
-}
 
 /**
  * 메일 목록을 분류 + 요약한다.

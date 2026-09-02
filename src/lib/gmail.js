@@ -5,7 +5,12 @@
  * Gmail REST API 문서: https://developers.google.com/gmail/api/reference/rest
  */
 
+import { mapLimit } from "./util";
+
 const GMAIL_API = "https://gmail.googleapis.com/gmail/v1/users/me";
+
+/** 동시에 보낼 Gmail 상세 요청 수 */
+const META_CONCURRENCY = 8;
 
 function authHeader(accessToken) {
   return { Authorization: `Bearer ${accessToken}` };
@@ -42,29 +47,27 @@ export async function listRecentMessageIds(accessToken, max = 10) {
  */
 export async function getMessagesMetadata(accessToken, ids) {
   if (!ids || ids.length === 0) return [];
-  return Promise.all(
-    ids.map(async (id) => {
-      const res = await fetch(
-        `${GMAIL_API}/messages/${id}` +
-          `?format=metadata` +
-          `&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
-        { headers: authHeader(accessToken) }
-      );
-      if (!res.ok) {
-        throw new Error(`메일 상세 요청 실패 (HTTP ${res.status})`);
-      }
-      const msg = await res.json();
-      const headers = msg.payload?.headers || [];
-      return {
-        id: msg.id,
-        threadId: msg.threadId,
-        from: pickHeader(headers, "From"),
-        subject: pickHeader(headers, "Subject"),
-        date: pickHeader(headers, "Date"),
-        snippet: msg.snippet || "",
-      };
-    })
-  );
+  return mapLimit(ids, META_CONCURRENCY, async (id) => {
+    const res = await fetch(
+      `${GMAIL_API}/messages/${id}` +
+        `?format=metadata` +
+        `&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
+      { headers: authHeader(accessToken) }
+    );
+    if (!res.ok) {
+      throw new Error(`메일 상세 요청 실패 (HTTP ${res.status})`);
+    }
+    const msg = await res.json();
+    const headers = msg.payload?.headers || [];
+    return {
+      id: msg.id,
+      threadId: msg.threadId,
+      from: pickHeader(headers, "From"),
+      subject: pickHeader(headers, "Subject"),
+      date: pickHeader(headers, "Date"),
+      snippet: msg.snippet || "",
+    };
+  });
 }
 
 /**

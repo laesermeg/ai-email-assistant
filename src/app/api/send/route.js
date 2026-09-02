@@ -7,6 +7,8 @@
 import { auth } from "@/auth";
 import * as mail from "@/lib/mail";
 
+export const maxDuration = 60;
+
 export async function POST(request) {
   const session = await auth();
   if (!session) {

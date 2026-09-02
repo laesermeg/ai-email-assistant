@@ -18,6 +18,9 @@ import { getStoredAnalyses, saveAnalyses } from "@/lib/analysis-store";
 import { getRules, applyRules } from "@/lib/rules";
 import { getGuideline } from "@/lib/settings";
 
+// 메일이 많으면 처리가 오래 걸릴 수 있으므로 함수 실행 시간을 넉넉히 (Vercel 최대 60초)
+export const maxDuration = 60;
+
 /** 표시할 최근 메일 개수 (기본값과 허용 범위) */
 const DEFAULT_COUNT = 30;
 const MIN_COUNT = 10;

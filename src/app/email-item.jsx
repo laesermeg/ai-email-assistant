@@ -199,7 +199,7 @@ export default function EmailItem({
               onKeyDown={(e) => {
                 if (e.key === "Enter") generate();
               }}
-              placeholder="간략히 답장 용건을 적어주세요 (예: 정중히 거절 / 금요일 오후 어때요 (영어로))"
+              placeholder="답장할 내용을 간략하게 입력해주세요. (예: 정중히 거절 / 금요일 오후 어때요 )"
               className="flex-1 border border-border bg-transparent px-2.5 py-1.5 text-xs outline-none focus:border-foreground"
             />
             <button

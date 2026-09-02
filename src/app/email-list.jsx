@@ -167,7 +167,17 @@ export default function EmailList({ userEmail }) {
         </p>
       ) : null}
 
-      {error ? <p className="text-sm text-muted">오류: {error}</p> : null}
+      {error ? (
+        <div className="text-sm text-muted">
+          <p>오류: {error}</p>
+          {count > COUNT_OPTIONS[0] ? (
+            <p className="mt-1 text-xs">
+              메일이 많으면 시간이 오래 걸리거나 실패할 수 있어요. 위에서 개수를
+              줄여({COUNT_OPTIONS[0]}개) 다시 시도해 보세요.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {emails && !analyzed ? (
         <p className="text-xs text-muted">

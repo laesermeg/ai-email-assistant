@@ -5,7 +5,12 @@
  * Graph 문서: https://learn.microsoft.com/graph/api/resources/message
  */
 
+import { mapLimit } from "./util";
+
 const GRAPH = "https://graph.microsoft.com/v1.0";
+
+/** 동시에 보낼 Graph 상세 요청 수 */
+const META_CONCURRENCY = 8;
 
 function authHeaders(accessToken, extra = {}) {
   return { Authorization: `Bearer ${accessToken}`, ...extra };
@@ -37,26 +42,24 @@ export async function listRecentMessageIds(accessToken, max = 30) {
 /** 주어진 메일 id 들의 헤더 + 미리보기 */
 export async function getMessagesMetadata(accessToken, ids) {
   if (!ids || ids.length === 0) return [];
-  return Promise.all(
-    ids.map(async (id) => {
-      const url =
-        `${GRAPH}/me/messages/${encodeURIComponent(id)}` +
-        `?$select=id,conversationId,from,subject,receivedDateTime,bodyPreview`;
-      const res = await fetch(url, { headers: authHeaders(accessToken) });
-      if (!res.ok) {
-        throw new Error(`메일 상세 요청 실패 (HTTP ${res.status})`);
-      }
-      const m = await res.json();
-      return {
-        id: m.id,
-        threadId: m.conversationId,
-        from: formatFrom(m.from),
-        subject: m.subject || "",
-        date: m.receivedDateTime || "",
-        snippet: m.bodyPreview || "",
-      };
-    })
-  );
+  return mapLimit(ids, META_CONCURRENCY, async (id) => {
+    const url =
+      `${GRAPH}/me/messages/${encodeURIComponent(id)}` +
+      `?$select=id,conversationId,from,subject,receivedDateTime,bodyPreview`;
+    const res = await fetch(url, { headers: authHeaders(accessToken) });
+    if (!res.ok) {
+      throw new Error(`메일 상세 요청 실패 (HTTP ${res.status})`);
+    }
+    const m = await res.json();
+    return {
+      id: m.id,
+      threadId: m.conversationId,
+      from: formatFrom(m.from),
+      subject: m.subject || "",
+      date: m.receivedDateTime || "",
+      snippet: m.bodyPreview || "",
+    };
+  });
 }
 
 /** 메일 한 개를 본문까지 (답장 작성·전송용) */
