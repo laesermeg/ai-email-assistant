@@ -205,7 +205,7 @@ export default function EmailItem({
       </p>
 
       {/* 요약 (누가/용건/날짜). 용건 옆에 "펼치기" */}
-      {!isOther && hasSummary(s) ? (
+      {hasSummary(s) ? (
         <dl className="mt-2 border-l border-border pl-3 text-xs">
           {s.who ? <Row label="누가">{s.who}</Row> : null}
           {s.what ? (
@@ -232,7 +232,7 @@ export default function EmailItem({
       ) : null}
 
       {/* 요약(용건)이 없을 때만 펼치기/접기를 별도 줄로 */}
-      {!(!isOther && s?.what) ? (
+      {!s?.what ? (
         <button
           type="button"
           onClick={toggleExpand}
@@ -265,8 +265,8 @@ export default function EmailItem({
         </div>
       ) : null}
 
-      {/* 답장 초안/전송 영역 (기타·완료 제외) */}
-      {!isOther && !done ? (
+      {/* 답장 초안/전송 영역 (완료 제외, 모든 분류) */}
+      {!done ? (
         <div className="mt-3 flex flex-col gap-2">
           {/* 1) 용건 입력 */}
           <div className="flex gap-2">
