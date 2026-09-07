@@ -1,5 +1,6 @@
 import { auth, signIn, signOut } from "@/auth";
 import Dashboard from "./dashboard";
+import ImapLogin from "./imap-login";
 
 /**
  * 첫 화면 (미니멀 흑백 스타일).
@@ -113,6 +114,7 @@ export default async function Home() {
                     Microsoft (Outlook)로 로그인
                   </button>
                 </form>
+                <ImapLogin />
               </div>
 
               <p className="text-xs leading-relaxed text-muted">

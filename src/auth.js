@@ -1,6 +1,10 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
+import Credentials from "next-auth/providers/credentials";
+import { presetForEmail } from "@/lib/imap-presets";
+import { verifyImap } from "@/lib/imap";
+import { saveMailCredentials } from "@/lib/mail-credentials";
 
 /**
  * 구글에게 요청할 권한(scope) — "필요한 최소한만" 원칙.
@@ -108,6 +112,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       authorization: { params: { scope: MS_SCOPES } },
       profile: minimalMsProfile,
     }),
+
+    /**
+     * IMAP 직접 연결. OAuth 가 아니라, 사용자가 메일 주소 + 비밀번호(또는 앱 비밀번호)를
+     * 입력하면 서버가 IMAP 접속을 확인하고, 비밀번호를 암호화해 DB에 저장한다.
+     */
+    Credentials({
+      id: "imap",
+      name: "메일 직접 연결",
+      credentials: {
+        email: {},
+        password: {},
+        imapHost: {},
+        imapPort: {},
+        smtpHost: {},
+        smtpPort: {},
+      },
+      async authorize(c) {
+        const email = String(c?.email || "").trim().toLowerCase();
+        const password = String(c?.password || "");
+        if (!email || !password) return null;
+
+        const preset = presetForEmail(email);
+        const imapHost = String(c.imapHost || preset?.imapHost || "").trim();
+        const imapPort = Number(c.imapPort || preset?.imapPort || 993);
+        const smtpHost = String(c.smtpHost || preset?.smtpHost || "").trim();
+        const smtpPort = Number(c.smtpPort || preset?.smtpPort || 465);
+        if (!imapHost || !smtpHost) return null;
+
+        const ok = await verifyImap({ email, password, imapHost, imapPort });
+        if (!ok) return null;
+
+        await saveMailCredentials(email, {
+          imapHost,
+          imapPort,
+          smtpHost,
+          smtpPort,
+          password,
+        });
+        return { id: email, email, name: email };
+      },
+    }),
   ],
 
   callbacks: {
@@ -118,12 +163,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
      */
     async jwt({ token, account }) {
       if (account) {
-        token.provider = account.provider; // "google" | "microsoft-entra-id"
+        token.provider = account.provider; // "google" | "microsoft-entra-id" | "imap"
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.expiresAt = account.expires_at;
         return token;
       }
+
+      // IMAP 은 access token 이 없다 (자격증명은 DB에 암호화 저장) → 갱신 불필요
+      if (token.provider === "imap") return token;
 
       if (token.expiresAt && Date.now() < token.expiresAt * 1000 - 60_000) {
         return token;

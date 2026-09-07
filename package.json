@@ -10,8 +10,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
+    "imapflow": "^1.7.8",
+    "mailparser": "^3.9.22",
     "next": "16.3.4",
     "next-auth": "^5.0.0-beta.32",
+    "nodemailer": "^10.0.0",
     "openai": "^7.8.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"

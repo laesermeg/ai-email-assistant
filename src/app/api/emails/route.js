@@ -13,6 +13,7 @@
  */
 import { auth } from "@/auth";
 import * as mail from "@/lib/mail";
+import { mailReady } from "@/lib/session-guard";
 import { analyzeEmails } from "@/lib/analyze";
 import { getStoredAnalyses, saveAnalyses } from "@/lib/analysis-store";
 import { getRules, applyRules } from "@/lib/rules";
@@ -44,19 +45,16 @@ export async function GET(request) {
     Math.max(MIN_COUNT, Number(params.get("count")) || DEFAULT_COUNT)
   );
 
-  if (!session) {
+  if (!session?.user?.email) {
     return Response.json({ error: "로그인이 필요합니다." }, { status: 401 });
   }
-  if (session.error === "RefreshAccessTokenError" || !session.accessToken) {
+  if (!mailReady(session)) {
     return Response.json(
-      { error: "Gmail 연결이 만료됐어요. 다시 로그인해 주세요." },
+      { error: "메일 연결이 만료됐어요. 다시 로그인해 주세요." },
       { status: 401 }
     );
   }
-  const userEmail = session.user?.email;
-  if (!userEmail) {
-    return Response.json({ error: "사용자 정보를 읽지 못했어요." }, { status: 401 });
-  }
+  const userEmail = session.user.email;
 
   // 1) 최근 메일 ID 목록 (가벼운 호출 1번)
   let list;

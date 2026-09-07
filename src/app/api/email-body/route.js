@@ -4,15 +4,16 @@
  */
 import { auth } from "@/auth";
 import * as mail from "@/lib/mail";
+import { mailReady } from "@/lib/session-guard";
 
 export const maxDuration = 60;
 
 export async function GET(request) {
   const session = await auth();
-  if (!session?.accessToken) {
+  if (!session?.user?.email) {
     return Response.json({ error: "로그인이 필요합니다." }, { status: 401 });
   }
-  if (session.error === "RefreshAccessTokenError") {
+  if (!mailReady(session)) {
     return Response.json(
       { error: "메일 연결이 만료됐어요. 다시 로그인해 주세요." },
       { status: 401 }
