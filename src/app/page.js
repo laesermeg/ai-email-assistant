@@ -119,7 +119,13 @@ export default async function Home() {
 
               <p className="text-xs leading-relaxed text-muted">
                 로그인 시 메일 읽기·보내기 권한을 요청합니다. 메일 원문은
-                저장하지 않으며, 필요한 최소한의 정보만 사용합니다.
+                저장하지 않으며, 필요한 최소한의 정보만 사용합니다.{" "}
+                <a
+                  href="/privacy"
+                  className="underline underline-offset-2 hover:text-foreground"
+                >
+                  개인정보처리방침
+                </a>
               </p>
             </div>
           )}
@@ -127,8 +133,14 @@ export default async function Home() {
       </main>
 
       {/* 하단 */}
-      <footer className="border-t border-border px-6 py-4 text-xs text-muted">
-        MVP · 로컬 개발 버전
+      <footer className="flex gap-3 border-t border-border px-6 py-4 text-xs text-muted">
+        <span>AI 이메일 비서</span>
+        <a
+          href="/privacy"
+          className="underline underline-offset-2 hover:text-foreground"
+        >
+          개인정보처리방침
+        </a>
       </footer>
     </div>
   );
