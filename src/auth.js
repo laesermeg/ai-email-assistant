@@ -140,7 +140,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const smtpPort = Number(c.smtpPort || preset?.smtpPort || 465);
         if (!imapHost || !smtpHost) return null;
 
-        const ok = await verifyImap({ email, password, imapHost, imapPort });
+        const { ok } = await verifyImap({ email, password, imapHost, imapPort });
         if (!ok) return null;
 
         await saveMailCredentials(email, {

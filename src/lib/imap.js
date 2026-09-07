@@ -35,11 +35,13 @@ function fmtAddr(a) {
 async function withInbox(creds, fn) {
   const client = new ImapFlow({
     host: creds.imapHost,
-    port: creds.imapPort,
-    secure: creds.imapPort === 993,
+    port: Number(creds.imapPort),
+    secure: Number(creds.imapPort) === 993,
     auth: { user: creds.email, pass: creds.password },
     logger: false,
-    // 자체서명 인증서 대응 여지 (대학 서버 등). 기본은 검증 유지.
+    socketTimeout: 20000,
+    greetingTimeout: 15000,
+    connectionTimeout: 15000,
   });
   await client.connect();
   try {
@@ -54,13 +56,21 @@ async function withInbox(creds, fn) {
   }
 }
 
-/** 접속·로그인만 확인 (자격증명 검증용) */
+/**
+ * 접속·로그인만 확인 (자격증명 검증용).
+ * 실패 이유를 서버 로그에 남긴다 (비밀번호는 남기지 않음).
+ * @returns {Promise<{ok: boolean, reason?: string}>}
+ */
 export async function verifyImap(creds) {
   try {
     await withInbox(creds, async () => true);
-    return true;
-  } catch {
-    return false;
+    return { ok: true };
+  } catch (err) {
+    const reason = err?.responseText || err?.message || String(err);
+    console.error(
+      `[imap verify] host=${creds.imapHost}:${creds.imapPort} user=${creds.email} → ${reason}`
+    );
+    return { ok: false, reason };
   }
 }
 
